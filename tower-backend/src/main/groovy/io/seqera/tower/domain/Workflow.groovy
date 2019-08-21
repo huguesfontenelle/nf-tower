@@ -27,7 +27,7 @@ import io.seqera.tower.enums.WorkflowStatus
  *  see https://www.nextflow.io/docs/latest/tracing.html#execution-report
  */
 @Entity
-@JsonIgnoreProperties(['dirtyPropertyNames', 'errors', 'dirty', 'attached', 'tasks', 'owner'])
+@JsonIgnoreProperties(['dirtyPropertyNames', 'errors', 'dirty', 'attached', 'tasks', 'tags', 'owner'])
 @CompileDynamic
 @ToString(includeNames = true)
 class Workflow {
@@ -35,7 +35,7 @@ class Workflow {
     static final private ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
 
     String id
-    static hasMany = [tasks: Task]
+    static hasMany = [tasks: Task, tags: WorkflowTag]
     static belongsTo = [owner: User]
 
     OffsetDateTime submit
