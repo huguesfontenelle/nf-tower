@@ -11,6 +11,8 @@
 
 package io.seqera.tower.service
 
+import io.seqera.tower.domain.WorkflowTag
+
 import javax.inject.Inject
 import javax.inject.Singleton
 import java.time.OffsetDateTime
@@ -129,6 +131,7 @@ class WorkflowServiceImpl implements WorkflowService {
         WorkflowProcess.where { workflow == workflowToDelete }.deleteAll()
         WorkflowMetrics.where { workflow == workflowToDelete }.deleteAll()
         WorkflowComment.where { workflow == workflowToDelete }.deleteAll()
+        WorkflowTag.where { workflow == workflowToDelete }.deleteAll()
         Task.where { workflow == workflowToDelete }.deleteAll()
         // delete orphan task-data records
         final delete = """
@@ -147,7 +150,6 @@ class WorkflowServiceImpl implements WorkflowService {
         TaskData.executeUpdate(delete,[sessionId: workflowToDelete.sessionId])
         // finally delete workflow record
         workflowToDelete.delete()
-
     }
 
     void deleteById(String workflowId) {
