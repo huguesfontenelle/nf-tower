@@ -131,7 +131,7 @@ class WorkflowServiceImpl implements WorkflowService {
         WorkflowProcess.where { workflow == workflowToDelete }.deleteAll()
         WorkflowMetrics.where { workflow == workflowToDelete }.deleteAll()
         WorkflowComment.where { workflow == workflowToDelete }.deleteAll()
-        WorkflowTag.where { workflow == workflowToDelete }.deleteAll()
+        workflowToDelete.tags?.each { WorkflowTag tag -> tag.delete() }
         Task.where { workflow == workflowToDelete }.deleteAll()
         // delete orphan task-data records
         final delete = """

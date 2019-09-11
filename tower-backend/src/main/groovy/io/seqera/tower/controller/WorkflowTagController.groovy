@@ -50,9 +50,9 @@ class WorkflowTagController {
 
     @Get("/list/{workflowId}")
     @Transactional
-    HttpResponse<ListWorkflowTagResponse> list(Serializable workflowId, Authentication authentication) {
+    HttpResponse<ListWorkflowTagResponse> list(String workflowId, Authentication authentication) {
         try {
-            Workflow workflow = workflowService.get(workflowId as Serializable)
+            Workflow workflow = workflowService.get(workflowId)
             if (!workflow) {
                 return HttpResponse.badRequest(ListWorkflowTagResponse.ofError('Trying to get tags of a nonexistent workflow'))
             }
@@ -74,7 +74,7 @@ class WorkflowTagController {
     @Transactional
     HttpResponse<CreateWorkflowTagResponse> create(@Body CreateWorkflowTagRequest request, Authentication authentication) {
         try {
-            Workflow workflow = workflowService.get(request.workflowId as Serializable)
+            Workflow workflow = workflowService.get(request.workflowId as String)
             if (!workflow) {
                 return HttpResponse.badRequest(CreateWorkflowTagResponse.ofError('Trying to associate to nonexistent workflow'))
             }
