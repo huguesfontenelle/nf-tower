@@ -10,45 +10,64 @@
  */
 
 import {AfterViewInit, Component, OnInit, ViewChild} from '@angular/core';
-import {ActivatedRoute, ParamMap} from "@angular/router";
+import {ActivatedRoute, ParamMap, Router} from "@angular/router";
 import {AuthService} from "../../service/auth.service";
+import {User} from "../../entity/user/user";
+import {JwtAuth} from "../../entity/user/jwt-auth";
+import {NotificationService} from "../../service/notification.service";
+import {HttpErrorResponse} from "@angular/common/http";
 
 @Component({
   selector: 'wt-auth',
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.scss']
 })
-export class AuthComponent implements OnInit, AfterViewInit {
+export class AuthComponent implements OnInit {
 
   constructor(private route: ActivatedRoute,
-              private authService: AuthService) {
+              private router: Router,
+              private authService: AuthService,
+              private notificationService: NotificationService
+              ) {
   }
 
-  @ViewChild('authForm', {static: true})
-  authForm;
-
-  authEndpointUrl: string;
   email: string;
   authToken: string;
 
   ngOnInit() {
-    this.authEndpointUrl = this.authService.authEndpointUrl;
     this.prepareAuthParams();
+    this.doAuth();
   }
 
-  prepareAuthParams(): void {
+  private prepareAuthParams(): void {
     const queryParams: ParamMap = this.route.snapshot.queryParamMap;
     this.email = queryParams.get('email');
     this.authToken = queryParams.get('authToken');
   }
 
-  ngAfterViewInit() {
+  private doAuth(): void {
     console.log('Authenticating with', this.email, this.authToken);
-    setTimeout(() => this.submitAuthForm(), 300);
+    this.authService.auth(this.email, this.authToken).subscribe((jwtAuth: JwtAuth) => {
+      if (!jwtAuth.isValid) {
+        this.handleUnsuccessfulLogin('There was an error parsing the JWT auth token');
+        return;
+      }
+
+      this.authService.retrieveUser(jwtAuth).subscribe(
+        (user: User) => this.handleSuccessfulLogin(user),
+        (error: HttpErrorResponse) => this.handleUnsuccessfulLogin('Bad credentials')
+      );
+    });
   }
 
-  private submitAuthForm(): void {
-    this.authForm.nativeElement.submit();
+  private handleUnsuccessfulLogin(errorMessage: string): void {
+    this.notificationService.showErrorNotification(errorMessage);
+    this.authService.logoutAndGoHome();
+  }
+
+  private handleSuccessfulLogin(user: User) {
+    console.log('Logged in as', user);
+    this.router.navigate(['']);
   }
 
 }

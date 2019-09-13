@@ -9,13 +9,16 @@
  * defined by the Mozilla Public License, v. 2.0.
  */
 import {UserData} from "./user-data";
+import {JwtAuth} from "./jwt-auth";
 
 export class User {
 
   data: UserData;
+  jwt: JwtAuth;
 
   constructor(userData: UserData) {
     this.data = userData;
+    this.jwt = new JwtAuth(userData.jwtAuthData.accessToken, userData.jwtAuthData.refreshToken);
   }
 
   get avatar(): string {

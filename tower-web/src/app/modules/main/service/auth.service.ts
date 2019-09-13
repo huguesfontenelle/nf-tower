@@ -17,8 +17,11 @@ import {environment} from "src/environments/environment";
 import {UserData} from "../entity/user/user-data";
 import {AccessGateResponse} from "../entity/gate";
 import {Router} from "@angular/router";
+import {JwtAuth} from "../entity/user/jwt-auth";
+import {JwtAuthData} from "../entity/user/jwt-auth-data";
 
 const authEndpointUrl: string = `${environment.apiUrl}/login`;
+const refreshEndpointUrl: string = `${environment.apiUrl}/oauth`;
 const userEndpointUrl: string = `${environment.apiUrl}/user`;
 const gateEndpointUrl: string = `${environment.apiUrl}/gate`;
 
@@ -47,19 +50,32 @@ export class AuthService {
     return this.userSubject.value
   }
 
-  get authEndpointUrl(): string {
-    return authEndpointUrl;
+  auth(email: string, authToken: string): Observable<JwtAuth> {
+    return this.http.post(authEndpointUrl, {username: email, password: authToken}).pipe(
+      map((authData: any) => {
+        console.log('The auth data', authData);
+        const jwtAuth: JwtAuth = new JwtAuth(authData.access_token, authData.refresh_token);
+        this.setCookie(jwtCookieName, jwtAuth.data.accessToken, jwtAuth.expirationDate);
+
+        return jwtAuth;
+      }));
   }
 
-  retrieveUser(): Observable<User> {
+  retrieveUser(jwtAuth: JwtAuth): Observable<User> {
     return this.requestUserProfileInfo().pipe(
-      tap((user: User) => this.setAuthUser(user))
+      map((userData: UserData) => {
+        userData.jwtAuthData = jwtAuth.data;
+        const user: User = new User(userData);
+        this.setAuthUser(user);
+
+        return user;
+      })
     );
   }
 
-  private requestUserProfileInfo(): Observable<User> {
+  private requestUserProfileInfo(): Observable<UserData> {
     return this.http.get(`${userEndpointUrl}/`).pipe(
-      map((data: any) => new User(data.user))
+      map((data: UserData) => data)
     );
   }
 
@@ -67,6 +83,16 @@ export class AuthService {
     this.persistUser(user);
     this.userSubject.next(user);
   }
+
+  private scheduleTokenRefresh(user: User) {
+
+  }
+
+  // private requestTokenRefresh(): Observable<User> {
+  //   return this.http.get(`${refreshEndpointUrl}/`).pipe(
+  //
+  //   );
+  // }
 
   access(email: string): Observable<AccessGateResponse> {
     return this.http.post<AccessGateResponse>(`${gateEndpointUrl}/access`, {email: email})
@@ -90,11 +116,12 @@ export class AuthService {
     this.router.navigate(['/']);
   }
 
-  logout(): void {
+  private logout(): void {
     this.removeUser();
     this.deleteCookie(jwtCookieName);
     this.userSubject.next(null);
   }
+
 
   private getCookieValue(cookieName: string) {
     const allCookies: string[] = document.cookie.split(';');
@@ -103,16 +130,19 @@ export class AuthService {
                        return cookiePair[0] == cookieName;
                      });
 
-    return cookiePair[1];
+    cookiePair ? cookiePair[1] : '';
   }
 
   private deleteCookie(cookieName: string) {
-    this.setCookieExpireDate(cookieName, new Date(0));
+    this.setCookie(cookieName, '', new Date(0));
   }
 
-  private setCookieExpireDate(cookieName: string, expireDate: Date) {
-    document.cookie = `${cookieName}=${this.getCookieValue(cookieName)}=;expires=${expireDate.toString()};`
+  private setCookie(cookieName: string, cookieValue: string, expireDate: Date) {
+    console.log('Setting cookie', `${cookieName}=${cookieValue}=;expires=${expireDate.toString()};`);
+    document.cookie = `${cookieName}=${cookieValue}=;expires=${expireDate.toString()};`;
+    console.log('Set cookie', document.cookie);
   }
+
 
   private persistUser(user: User): void {
     localStorage.setItem('user', JSON.stringify(user.data));

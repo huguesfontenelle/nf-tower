@@ -8,18 +8,7 @@
  * This Source Code Form is "Incompatible With Secondary Licenses", as
  * defined by the Mozilla Public License, v. 2.0.
  */
-import {JwtAuthData} from "./jwt-auth-data";
-
-export interface UserData {
-  id: number;
-  userName: string;
-  email: string;
-  roles: string[];
-  jwtAuthData: JwtAuthData;
-
-  firstName: string;
-  lastName: string;
-  organization: string;
-  description: string;
-  avatar: string;
+export interface JwtPayload {
+  exp: number;
+  iat: number;
 }

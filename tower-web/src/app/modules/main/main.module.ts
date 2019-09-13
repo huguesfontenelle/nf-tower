@@ -46,14 +46,12 @@ import {WorkflowErrorComponent} from "./component/workflow-error/workflow-error.
 import { LoadingComponent } from './component/loading/loading.component';
 import {TreeListComponent} from "./component/tree-list/TreeListComponent";
 import {WorkflowStatusIconComponent} from "../../workflow-status-icon/workflow-status-icon.component";
-import { AccessComponent } from './component/access/access.component';
 
 /*
  * Main application routing strategy
  */
 const routes: Routes = [
   {path: 'auth',        component: AuthComponent},
-  {path: 'access',      component: AccessComponent},
   {path: 'logout',      component: LogoutComponent},
   {path: '',            component: HomeComponent,
    children: [
@@ -90,7 +88,6 @@ export class MainRoutingModule { }
     LoadingComponent,
     LoginComponent,
     AuthComponent,
-    AccessComponent,
     LogoutComponent,
     UserProfileComponent,
     AccessTokenComponent,

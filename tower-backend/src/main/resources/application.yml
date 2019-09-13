@@ -29,7 +29,7 @@ micronaut:
       jwt:
         enabled: true
         bearer:
-          enabled: false
+          enabled: true
         cookie:
           enabled: true
           cookieHttpOnly: false
