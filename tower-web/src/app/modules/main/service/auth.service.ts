@@ -32,8 +32,9 @@ const jwtCookieName: string = 'JWT';
 export class AuthService {
 
   user$: Observable<User>;
-
   private userSubject: BehaviorSubject<User>;
+
+  refreshTokenTimerId: number;
 
   constructor(private http: HttpClient,
               private router: Router) {
@@ -51,12 +52,16 @@ export class AuthService {
 
   auth(email: string, authToken: string): Observable<JwtAuth> {
     return this.http.post(authEndpointUrl, {username: email, password: authToken}).pipe(
-      map((authData: any) => this.generateJwtCookieFromAuthData(authData))
+      map((authData: any) => {
+        const jwtAuth: JwtAuth = this.generateJwtCookieFromAuthData(authData);
+        console.log('New auth data', jwtAuth);
+
+        return jwtAuth;
+      })
     );
   }
 
   private generateJwtCookieFromAuthData(authData: any): JwtAuth {
-    console.log('The auth data', authData);
     const jwtAuth: JwtAuth = new JwtAuth(authData.access_token, authData.refresh_token);
     this.setCookie(jwtCookieName, jwtAuth.data.accessToken, jwtAuth.expirationDate);
 
@@ -66,7 +71,8 @@ export class AuthService {
 
   retrieveUserFromServer(jwtAuth: JwtAuth): Observable<User> {
     return this.requestUserProfileInfo().pipe(
-      map((userData: UserData) => {
+      map((data: any) => {
+        const userData = <UserData>data.user;
         userData.jwtAuthData = jwtAuth.data;
         return new User(userData);
       }),
@@ -88,27 +94,40 @@ export class AuthService {
 
   private scheduleTokenRefresh(user: User): void {
     const timeUntilExpirationMs: number = user.jwt.expirationDate.getTime() - Date.now();
-    console.log('time until exp', timeUntilExpirationMs, user.jwt.expirationDate.getTime(), Date.now());
-    const refreshIn: number = (timeUntilExpirationMs - 2000 > 0) ? timeUntilExpirationMs - 2000 : 0;
+    if (timeUntilExpirationMs <= 0) {
+      return;
+    }
 
-    console.log('Token refresh scheduled to', new Date(Date.now() + refreshIn));
-    setTimeout(() => {
+    const prudentialTimeBeforeExpirationMs: number = 5 * 60 * 1000;
+    const refreshIn: number = (timeUntilExpirationMs - prudentialTimeBeforeExpirationMs > 0) ? timeUntilExpirationMs - prudentialTimeBeforeExpirationMs : 0;
+    console.log('Token expire date', user.jwt.expirationDate, 'Refresh scheduled to', new Date(Date.now() + refreshIn));
+    this.refreshTokenTimerId = setTimeout(() => {
       this.requestTokenRefresh(user).subscribe();
     }, refreshIn);
+  }
+
+  private cancelScheduledTokenRefresh(): void {
+    if (this.refreshTokenTimerId == null) {
+      return;
+    }
+
+    console.log('Canceling scheduled token refresh');
+    clearTimeout(this.refreshTokenTimerId);
   }
 
   private requestTokenRefresh(user: User): Observable<User> {
     return this.http.post(`${refreshEndpointUrl}/`, {grant_type: 'refresh_token', refresh_token: user.jwt.data.refreshToken}).pipe(
       map((authData: any) => {
-        console.log('Refreshed auth data', authData);
         const jwtAuth: JwtAuth = this.generateJwtCookieFromAuthData(authData);
+        console.log('Refreshed auth data', jwtAuth);
 
         user.data.jwtAuthData = jwtAuth.data;
         const updatedUser: User = user.generateCopy();
         this.setAuthUser(updatedUser);
 
         return updatedUser;
-      })
+      }),
+      tap((user: User) => this.scheduleTokenRefresh(user))
     );
   }
 
@@ -137,6 +156,7 @@ export class AuthService {
   private logout(): void {
     this.removeUser();
     this.deleteCookie(jwtCookieName);
+    this.cancelScheduledTokenRefresh();
     this.userSubject.next(null);
   }
 
@@ -146,9 +166,7 @@ export class AuthService {
   }
 
   private setCookie(cookieName: string, cookieValue: string, expireDate: Date) {
-    console.log('Setting cookie', `${cookieName}=${cookieValue}=;expires=${expireDate.toString()};`);
     document.cookie = `${cookieName}=${cookieValue}=;expires=${expireDate.toString()};`;
-    console.log('Set cookie', document.cookie);
   }
 
 

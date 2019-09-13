@@ -39,7 +39,7 @@ micronaut:
             generator:
               secret: "${TOWER_SIGNING_SECRET:pleaseChangeThisSecretForANewOne}"
         generator:
-          accessTokenExpiration: 86400
+          accessTokenExpiration: 3600
 ---
 jackson:
   serialization:

@@ -19,7 +19,6 @@ export class JwtAuth {
   constructor(accessToken: string, refreshToken: string) {
     this.data = <JwtAuthData>{accessToken: accessToken, refreshToken: refreshToken};
     this.payload = this.parseJwt(accessToken);
-    console.log('The JWT payload', this.payload);
   }
 
   get isValid(): boolean {
