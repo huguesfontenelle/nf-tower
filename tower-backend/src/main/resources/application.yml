@@ -34,8 +34,6 @@ micronaut:
           enabled: true
           cookieHttpOnly: false
           domain: "${TOWER_SERVER_URL:`http://localhost:8000`}"
-          loginSuccessTargetUrl: "${TOWER_SERVER_URL:`http://localhost:8000`}/access?success=true"
-          loginFailureTargetUrl: "${TOWER_SERVER_URL:`http://localhost:8000`}/access?success=false"
         signatures:
           secret:
             generator:

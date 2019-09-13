@@ -53,7 +53,7 @@ export class AuthComponent implements OnInit {
         return;
       }
 
-      this.authService.retrieveUser(jwtAuth).subscribe(
+      this.authService.retrieveUserFromServer(jwtAuth).subscribe(
         (user: User) => this.handleSuccessfulLogin(user),
         (error: HttpErrorResponse) => this.handleUnsuccessfulLogin('Bad credentials')
       );
