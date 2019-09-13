@@ -70,7 +70,6 @@ export class LiveEventsService {
 
       eventSource.addEventListener('message', (event: MessageEvent) => {
         const dataArray: any[] = JSON.parse(event.data);
-        console.log('Event', dataArray);
         if (!dataArray || (Array.isArray(dataArray) && dataArray.length == 0)) {
           return;
         }

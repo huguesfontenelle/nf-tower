@@ -21,25 +21,16 @@ import {NotificationService} from "../../service/notification.service";
 })
 export class LogoutComponent implements OnInit, AfterViewInit {
 
-  @ViewChild('logoutForm', {static: true})
-  logoutForm;
-
-  logoutEndpointUrl: string;
-
   constructor(private authService: AuthService) {
   }
 
   ngOnInit() {
-    this.authService.logout();
-    this.logoutEndpointUrl = this.authService.logoutEndpointUrl;
   }
+
 
   ngAfterViewInit() {
-    setTimeout(() => this.submitLogoutForm(), 300);
-  }
-
-  private submitLogoutForm(): void {
-    this.logoutForm.nativeElement.submit();
+    //Timeout after some time to favor UX
+    setTimeout(() => this.authService.logoutAndGoHome(), 300);
   }
 
 }

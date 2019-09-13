@@ -22,12 +22,26 @@ micronaut:
       login:
         enabled: true
       logout:
+        enabled: false
+      oauth:
         enabled: true
-    session:
-      enabled: true
-      loginSuccessTargetUrl: "${TOWER_SERVER_URL:`http://localhost:8000`}/access?success=true"
-      loginFailureTargetUrl: "${TOWER_SERVER_URL:`http://localhost:8000`}/access?success=false"
-      logoutTargetUrl: "${TOWER_SERVER_URL:`http://localhost:8000`}/"
+    token:
+      jwt:
+        enabled: true
+        bearer:
+          enabled: false
+        cookie:
+          enabled: true
+          cookieHttpOnly: false
+          domain: "${TOWER_SERVER_URL:`http://localhost:8000`}"
+          loginSuccessTargetUrl: "${TOWER_SERVER_URL:`http://localhost:8000`}/access?success=true"
+          loginFailureTargetUrl: "${TOWER_SERVER_URL:`http://localhost:8000`}/access?success=false"
+        signatures:
+          secret:
+            generator:
+              secret: "${TOWER_SIGNING_SECRET:pleaseChangeThisSecretForANewOne}"
+        generator:
+          accessTokenExpiration: 86400
 ---
 jackson:
   serialization:

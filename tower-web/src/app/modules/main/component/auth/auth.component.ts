@@ -33,16 +33,17 @@ export class AuthComponent implements OnInit, AfterViewInit {
 
   ngOnInit() {
     this.authEndpointUrl = this.authService.authEndpointUrl;
+    this.prepareAuthParams();
   }
 
-  doAuth(email: string, authToken: string): void {
+  prepareAuthParams(): void {
     const queryParams: ParamMap = this.route.snapshot.queryParamMap;
     this.email = queryParams.get('email');
     this.authToken = queryParams.get('authToken');
-    console.log('Authenticating with', email, authToken);
   }
 
   ngAfterViewInit() {
+    console.log('Authenticating with', this.email, this.authToken);
     setTimeout(() => this.submitAuthForm(), 300);
   }
 

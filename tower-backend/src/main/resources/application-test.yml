@@ -8,8 +8,6 @@ micronaut:
       paths: src/main
       restart: true
   security:
-    session:
-      enabled: false
     token:
       jwt:
         enabled: true

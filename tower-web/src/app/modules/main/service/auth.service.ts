@@ -19,9 +19,10 @@ import {AccessGateResponse} from "../entity/gate";
 import {Router} from "@angular/router";
 
 const authEndpointUrl: string = `${environment.apiUrl}/login`;
-const logoutEndpointUrl: string = `${environment.apiUrl}/logout`;
 const userEndpointUrl: string = `${environment.apiUrl}/user`;
 const gateEndpointUrl: string = `${environment.apiUrl}/gate`;
+
+const jwtCookieName: string = 'JWT';
 
 @Injectable({
   providedIn: 'root'
@@ -48,10 +49,6 @@ export class AuthService {
 
   get authEndpointUrl(): string {
     return authEndpointUrl;
-  }
-
-  get logoutEndpointUrl(): string {
-    return logoutEndpointUrl;
   }
 
   retrieveUser(): Observable<User> {
@@ -95,7 +92,26 @@ export class AuthService {
 
   logout(): void {
     this.removeUser();
+    this.deleteCookie(jwtCookieName);
     this.userSubject.next(null);
+  }
+
+  private getCookieValue(cookieName: string) {
+    const allCookies: string[] = document.cookie.split(';');
+    const cookiePair: string[] = allCookies.map((cookie: string) => cookie.split('='))
+                     .find((cookiePair: string[]) => {
+                       return cookiePair[0] == cookieName;
+                     });
+
+    return cookiePair[1];
+  }
+
+  private deleteCookie(cookieName: string) {
+    this.setCookieExpireDate(cookieName, new Date(0));
+  }
+
+  private setCookieExpireDate(cookieName: string, expireDate: Date) {
+    document.cookie = `${cookieName}=${this.getCookieValue(cookieName)}=;expires=${expireDate.toString()};`
   }
 
   private persistUser(user: User): void {
