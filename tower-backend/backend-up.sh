@@ -1,7 +1,6 @@
 # Launch backend server
 java \
-  -XX:+UnlockExperimentalVMOptions \
-  -XX:+UseCGroupMemoryLimitForHeap \
+   -XX:+UseContainerSupport \
   -Dcom.sun.management.jmxremote \
   -noverify \
   -Dmicronaut.config.files=tower.yml \

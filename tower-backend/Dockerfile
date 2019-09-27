@@ -1,4 +1,4 @@
-FROM openjdk:8-alpine
+FROM adoptopenjdk/openjdk11:jdk-11.0.4_11-alpine-slim
 RUN apk update && apk upgrade && apk add bash
 COPY build/libs/tower-*.jar /tower/tower-backend.jar
 COPY wait-for-it.sh /usr/local/bin/wait-for-it.sh
